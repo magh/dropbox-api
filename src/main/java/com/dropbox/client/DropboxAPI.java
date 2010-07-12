@@ -250,8 +250,7 @@ public class DropboxAPI {
 			try {
 				fos = new FileOutputStream(localFile);
 			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println(e.toString());
 			}
 
 			entity.writeTo(fos);
@@ -279,9 +278,9 @@ public class DropboxAPI {
 	public void putFile(String root, String dbPath, File localFile) {
 		try {
 			HttpResponse resp = mClient.putFile(root, dbPath, localFile);
+			DropboxClientHelper.assertValidResponse(resp);
 		} catch (DropboxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println(e.toString());
 		}
 	}
 
