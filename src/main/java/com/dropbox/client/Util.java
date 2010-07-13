@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -19,6 +21,8 @@ public class Util {
 
 	public static final String LOGIN_URL = "https://www.dropbox.com/login";
 	public static final String AUTH_URL = "https://www.dropbox.com/0/oauth/authorize";
+
+	public final static Pattern tPattern = Pattern.compile("<input type=\"hidden\" name=\"t\" value=\"(.*)\" />");
 
 	public static void authorizeDropbox(String requestTokenUrl, String username,
 			String password, String token) throws Exception {
@@ -44,7 +48,7 @@ public class Util {
 		HttpPost post = new HttpPost(LOGIN_URL);
 		
 		List<NameValuePair> pairs = new ArrayList<NameValuePair>();
-//		pairs.add(new BasicNameValuePair("t", "791206fc33"));
+//		pairs.add(new BasicNameValuePair("t", tParam..."791206fc33"));
 		pairs.add(new BasicNameValuePair("cont", conturl));
 //		pairs.add(new BasicNameValuePair("cont", requestTokenUrl));
 		pairs.add(new BasicNameValuePair("login_email", username));
@@ -56,9 +60,13 @@ public class Util {
 
 		is = response.getEntity().getContent();
 		res = readStream(is);
+		
+		String tParam = null;
 		if(!res.contains("you should be redirected automatically")){
 			//TODO verify
 			log("no redirect?");
+//			log("data: "+res);
+			tParam = getT(res);
 		}
 
         if(statusCode == 200){
@@ -82,12 +90,15 @@ public class Util {
 	    			//TODO no need to allow?
 	    			log("already allowed?");
 	    		}
+	    		if(tParam == null){
+	    			tParam = getT(res);
+	    		}
 	        }
         }
 		//allow
 		log("auth url: "+AUTH_URL);
 		pairs = new ArrayList<NameValuePair>();
-		pairs.add(new BasicNameValuePair("t", "0015b2efc8"));
+		pairs.add(new BasicNameValuePair("t", tParam));
 		pairs.add(new BasicNameValuePair("oauth_token", token));
 		pairs.add(new BasicNameValuePair("access_option", "Allow"));
 
@@ -141,6 +152,16 @@ public class Util {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	private static String getT(String input){
+		Matcher m = tPattern.matcher(input);
+		if(m.find()){
+			String t = m.group(1);
+			log("t="+t);
+			return t;
+		}
+		return null;
 	}
 
 	private Util() {}
