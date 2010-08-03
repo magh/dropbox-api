@@ -51,6 +51,12 @@ public class DropboxClientHelper {
 		assertValidResponse(resp);
 	}
 
+	public static void putFile(DropboxClient client, String remotedir,
+			String remotename, InputStream stream, long length) throws DropboxException {
+		HttpResponse resp = client.putFileStream(ROOT, remotedir, remotename, stream, length);
+		assertValidResponse(resp);
+	}
+
 	public static InputStream getFileStream(DropboxClient client, String remotefile)
 			throws DropboxException, IllegalStateException, IOException {
 		HttpResponse resp = client.getFile(ROOT, remotefile);

@@ -26,6 +26,7 @@
 package com.dropbox.client;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +41,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.json.JSONObject;
@@ -288,6 +290,59 @@ public class DropboxClient extends RESTUtility {
 			return resp;
 		} catch (Exception e) {
 			throw new DropboxException(e);
+		}
+	}
+
+	/**
+	 * Put a file in the user's Dropbox.
+	 */
+	public HttpResponse putFileStream(String root, String to_path, String name,
+			InputStream stream, long length) throws DropboxException {
+		String path = "/files/" + root + to_path;
+
+		HttpClient client = getClient();
+
+		try {
+			String target = buildFullURL(secureProtocol, content_host,
+					this.port, buildURL(path, API_VERSION, null));
+			HttpPost req = new HttpPost(target);
+			// this has to be done this way because of how oauth signs params
+			// first we add a "fake" param of file=path of *uploaded* file
+			// THEN we sign that.
+			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+			nvps.add(new BasicNameValuePair("file", name));
+			req.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
+			consumer.sign(req);
+
+			// now we can add the real file multipart and we're good
+			MultipartEntity entity = new MultipartEntity(
+					HttpMultipartMode.BROWSER_COMPATIBLE);
+			FileStreamBody bin = new FileStreamBody(stream, name, length);
+			entity.addPart("file", bin);
+			// this resets it to the new entity with the real file
+			req.setEntity(entity);
+
+			HttpResponse resp = client.execute(req);
+
+			resp.getEntity().consumeContent();
+			return resp;
+		} catch (Exception e) {
+			throw new DropboxException(e);
+		}
+	}
+	
+	class FileStreamBody extends InputStreamBody {
+		
+		private long length;
+
+		public FileStreamBody(InputStream in, String filename, long length) {
+			super(in, filename);
+			this.length = length;
+		}
+		
+		@Override
+		public long getContentLength() {
+			return length;
 		}
 	}
 
