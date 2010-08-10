@@ -3,6 +3,8 @@ package com.dropbox.client;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import oauth.signpost.basic.DefaultOAuthProvider;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
@@ -24,7 +26,53 @@ public class DropboxClientHelper {
 //	public static final String ACCESS_TOKEN_URL = "http://api.getdropbox.com/0/oauth/access_token";
 //	public static final String AUTHORIZATION_URL = "http://api.getdropbox.com/0/oauth/authorize";
 	
+	public static final String KEY_URL = "url";
+	public static final String KEY_TOKEN = "token";
+	public static final String KEY_SECRET = "secret";
+
 	private final static String ROOT = "sandbox";
+
+	public static Map<String, String> getRequestTokenUrl(String consumerKey,
+			String consumerSecret, String callbackUrl)
+			throws OAuthMessageSignerException, OAuthNotAuthorizedException,
+			OAuthExpectationFailedException, OAuthCommunicationException {
+		Map<String, String> map = new HashMap<String, String>(3);
+		CommonsHttpOAuthConsumer consumer = new CommonsHttpOAuthConsumer(
+				consumerKey, consumerSecret);
+		DefaultOAuthProvider provider = new DefaultOAuthProvider(
+				REQUEST_TOKEN_URL, ACCESS_TOKEN_URL, AUTHORIZATION_URL);
+		String url = provider.retrieveRequestToken(consumer, callbackUrl);
+		map.put(KEY_URL, url);
+		map.put(KEY_TOKEN, consumer.getToken());
+		map.put(KEY_SECRET, consumer.getTokenSecret());
+		return map;
+	}
+
+	/**
+	 * @param consumerKey
+	 * @param consumerSecret
+	 * @param token authorized request token
+	 * @param tokenSecret required?
+	 * @return client
+	 */
+	public static DropboxClient newClientFromCallback(String consumerKey,
+			String consumerSecret, String token, String tokenSecret) {
+		CommonsHttpOAuthConsumer consumer = new CommonsHttpOAuthConsumer(
+				consumerKey, consumerSecret);
+		consumer.setTokenWithSecret(token, tokenSecret);
+		DefaultOAuthProvider provider = new DefaultOAuthProvider(
+				DropboxClientHelper.REQUEST_TOKEN_URL,
+				DropboxClientHelper.ACCESS_TOKEN_URL,
+				DropboxClientHelper.AUTHORIZATION_URL);
+		String oauthVerifier = "";
+		try {
+			provider.retrieveAccessToken(consumer, oauthVerifier);
+			return new DropboxClient(consumer);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	public static DropboxClient newClient(String consumerKey,
 			String consumerSecret, String username, String password)
@@ -40,7 +88,6 @@ public class DropboxClientHelper {
 		String url = provider.retrieveRequestToken(consumer, null);
 		String token = consumer.getToken();
 		Util.authorizeDropbox(url, username, password, token);
-		Util.log("retrieveAccessToken");
 		provider.retrieveAccessToken(consumer, "");
 		return new DropboxClient(consumer);
 	}
