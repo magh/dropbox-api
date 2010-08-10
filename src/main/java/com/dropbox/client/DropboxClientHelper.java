@@ -6,6 +6,10 @@ import java.io.InputStream;
 
 import oauth.signpost.basic.DefaultOAuthProvider;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
+import oauth.signpost.exception.OAuthCommunicationException;
+import oauth.signpost.exception.OAuthExpectationFailedException;
+import oauth.signpost.exception.OAuthMessageSignerException;
+import oauth.signpost.exception.OAuthNotAuthorizedException;
 
 import org.apache.http.HttpResponse;
 import org.json.JSONException;
@@ -24,7 +28,9 @@ public class DropboxClientHelper {
 
 	public static DropboxClient newClient(String consumerKey,
 			String consumerSecret, String username, String password)
-			throws Exception {
+			throws OAuthMessageSignerException, OAuthNotAuthorizedException,
+			OAuthExpectationFailedException, OAuthCommunicationException,
+			IllegalStateException, IOException {
 
 		CommonsHttpOAuthConsumer consumer = new CommonsHttpOAuthConsumer(
 				consumerKey, consumerSecret);
@@ -36,6 +42,14 @@ public class DropboxClientHelper {
 		Util.authorizeDropbox(url, username, password, token);
 		Util.log("retrieveAccessToken");
 		provider.retrieveAccessToken(consumer, "");
+		return new DropboxClient(consumer);
+	}
+
+	public static DropboxClient newAuthenticatedClient(String consumerKey,
+			String consumerSecret, String accessToken, String accessTokenSecret) {
+		CommonsHttpOAuthConsumer consumer = new CommonsHttpOAuthConsumer(
+				consumerKey, consumerSecret);
+		consumer.setTokenWithSecret(accessToken, accessTokenSecret);
 		return new DropboxClient(consumer);
 	}
 
@@ -87,7 +101,6 @@ public class DropboxClientHelper {
 		if (resp == null) {
 			throw new DropboxException("Should always get a response.");
 		}
-		Util.log(resp.toString());
 	}
 
 	public static void assertValidResponse(HttpResponse resp)
@@ -97,7 +110,6 @@ public class DropboxClientHelper {
 		}
 		int status = resp.getStatusLine().getStatusCode();
 		if (status != 200) {
-			Util.log("invalid status: "+status);
 			throw new DropboxException("Invalid status: " + status);
 		}
 	}

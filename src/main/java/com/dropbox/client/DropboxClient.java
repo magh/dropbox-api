@@ -346,4 +346,12 @@ public class DropboxClient extends RESTUtility {
 		}
 	}
 
+	public String getAccessToken(){
+		return consumer.getToken();
+	}
+
+	public String getAccessTokenSecret(){
+		return consumer.getTokenSecret();
+	}
+
 }

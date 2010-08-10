@@ -25,7 +25,7 @@ public class Util {
 	public final static Pattern tPattern = Pattern.compile("<input type=\"hidden\" name=\"t\" value=\"(.*)\" />");
 
 	public static void authorizeDropbox(String requestTokenUrl, String username,
-			String password, String token) throws Exception {
+			String password, String token) throws IllegalStateException, IOException {
 		log("authorizeDropbox: "+requestTokenUrl);
 
 		DefaultHttpClient client = new DefaultHttpClient();
