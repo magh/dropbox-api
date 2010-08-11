@@ -5,6 +5,11 @@ import static org.junit.Assert.assertEquals;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
+import oauth.signpost.exception.OAuthCommunicationException;
+import oauth.signpost.exception.OAuthExpectationFailedException;
+import oauth.signpost.exception.OAuthMessageSignerException;
+import oauth.signpost.exception.OAuthNotAuthorizedException;
+
 import org.json.JSONException;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -28,10 +33,12 @@ public class DropboxClientHelperTest {
 	private static DropboxClient mClient;
 
 	@BeforeClass
-	public static void runBeforeClass() {
+	public static void runBeforeClass() throws OAuthMessageSignerException,
+			OAuthNotAuthorizedException, OAuthExpectationFailedException,
+			OAuthCommunicationException, IllegalStateException, IOException {
 		// run for one time before all test cases
-		mClient = DropboxClientHelper.newAuthenticatedClient(CONSUMER_KEY,
-				CONSUMER_SECRET, ACCESSTOKEN, ACCESSTOKEN_SECRET);
+		mClient = DropboxClientHelper.newClient(CONSUMER_KEY,
+				CONSUMER_SECRET, USERNAME, PASSWORD);
 	}
 
 	@AfterClass
