@@ -102,6 +102,24 @@ public class DropboxClientHelperTest {
 		DropboxClientHelper.fileDelete(mClient, REMOTEFILE);
 	}
 
+	@Test
+	public void testIsValidClient() {
+		//valid
+		boolean valid = DropboxClientHelper.isValidClient(mClient);
+		assertEquals(true, valid);
+		//invalid null
+		valid = DropboxClientHelper.isValidClient(null);
+		assertEquals(false, valid);
+		//invalid client(null)
+		valid = DropboxClientHelper.isValidClient(new DropboxClient(null));
+		assertEquals(false, valid);
+		//invalid newAuthenticatedClient
+		DropboxClient client = DropboxClientHelper.newAuthenticatedClient(CONSUMER_KEY,
+				CONSUMER_SECRET, "invalid", "invalid");
+		valid = DropboxClientHelper.isValidClient(client);
+		assertEquals(false, valid);
+	}
+
 	@Ignore("Ignore test case")
 	@Test(expected = Exception.class)
 	public void testException() throws Exception {

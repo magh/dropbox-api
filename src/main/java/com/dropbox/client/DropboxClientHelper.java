@@ -160,6 +160,21 @@ public class DropboxClientHelper {
 			throw new DropboxException("Invalid status: " + status);
 		}
 	}
+	
+	public static boolean isValidClient(DropboxClient client){
+		if(client == null){
+			return false;
+		}
+		try {
+//			JSONObject accountInfo = 
+			client.accountInfo(false, null);
+//			System.out.println("isValidClient: "+accountInfo.toString());
+			return true;
+		} catch (DropboxException e) {
+//			System.out.println("isValidClient exception: "+e.getMessage());
+		}
+		return false;
+	}
 
 	private DropboxClientHelper() {
 	}
